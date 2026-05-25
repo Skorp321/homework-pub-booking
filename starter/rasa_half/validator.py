@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 
 @dataclass
@@ -139,27 +141,48 @@ _MONTH_NAMES = {
 
 def _normalise_date(raw: str) -> str:
     s = str(raw).strip().lower()
+    today = datetime.now(ZoneInfo("Europe/London")).date()
     if s == "today":
-        return "2026-04-25"
+        return today.isoformat()
     if s == "tomorrow":
-        return "2026-04-26"
+        return (today + timedelta(days=1)).isoformat()
     if re.fullmatch(r"\d{4}-\d{2}-\d{2}", s):
-        return s
+        try:
+            return datetime.strptime(s, "%Y-%m-%d").date().isoformat()
+        except ValueError as e:
+            raise ValidationFailed(f"cannot parse date: {raw!r}") from e
+    if m := re.fullmatch(r"(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?", s):
+        day = int(m.group(1))
+        month = int(m.group(2))
+        year_raw = m.group(3)
+        if year_raw is None:
+            year = today.year
+        elif len(year_raw) == 2:
+            year = 2000 + int(year_raw)
+        else:
+            year = int(year_raw)
+        try:
+            return datetime(year, month, day).date().isoformat()
+        except ValueError as e:
+            raise ValidationFailed(f"cannot parse date: {raw!r}") from e
     m = re.match(r"(\d{1,2})(?:st|nd|rd|th)?\s+(\w+)(?:\s+(\d{4}))?", s)
     if m:
         day = int(m.group(1))
         month_name = m.group(2)
-        year = int(m.group(3)) if m.group(3) else 2026
+        year = int(m.group(3)) if m.group(3) else today.year
         if month_name not in _MONTH_NAMES:
             raise ValidationFailed(f"unknown month: {month_name!r}")
-        return f"{year:04d}-{_MONTH_NAMES[month_name]:02d}-{day:02d}"
+        try:
+            return datetime(year, _MONTH_NAMES[month_name], day).date().isoformat()
+        except ValueError as e:
+            raise ValidationFailed(f"cannot parse date: {raw!r}") from e
     raise ValidationFailed(f"cannot parse date: {raw!r}")
 
 
 # ---------------------------------------------------------------------------
 # Helpers — provided. You may use them or write your own.
 # ---------------------------------------------------------------------------
-_GBP_PATTERN = re.compile(r"£?\s*(\d+(?:\.\d+)?)\s*(?:gbp|GBP)?", re.IGNORECASE)
+_GBP_PATTERN = re.compile(r"^£?\s*(\d+(?:\.\d+)?)\s*(?:gbp)?$", re.IGNORECASE)
 
 
 def parse_currency_gbp(raw: str | int | float) -> int:
@@ -169,7 +192,10 @@ def parse_currency_gbp(raw: str | int | float) -> int:
         if raw < 0:
             raise ValidationFailed(f"negative currency: {raw!r}")
         return int(raw)
-    m = _GBP_PATTERN.search(str(raw).strip())
+    s = str(raw).strip()
+    if s.startswith("-") or s.startswith("£-"):
+        raise ValidationFailed(f"negative currency: {raw!r}")
+    m = _GBP_PATTERN.fullmatch(s)
     if not m:
         raise ValidationFailed(f"cannot parse currency: {raw!r}")
     value = float(m.group(1))
@@ -195,6 +221,8 @@ def parse_time_24h(raw: str) -> str:
         h = int(m.group(1))
         mm = int(m.group(2) or 0)
         ampm = m.group(3)
+        if not (1 <= h <= 12 and 0 <= mm <= 59):
+            raise ValidationFailed(f"cannot parse time: {raw!r}")
         if ampm == "pm" and h < 12:
             h += 12
         if ampm == "am" and h == 12:

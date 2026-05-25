@@ -74,6 +74,7 @@ class ActionValidateBooking(Action):
         time_slot = booking.get("time")
         party_size = booking.get("party_size")
         deposit_gbp = booking.get("deposit_gbp", 0)
+        duration_hours = booking.get("duration_hours", 3)
 
         # All the slot-sets we'll emit — start with populating from metadata
         # so downstream responses can reference {venue_id}, {party_size}, etc.
@@ -92,6 +93,7 @@ class ActionValidateBooking(Action):
             SlotSet("time", str(time_slot) if time_slot is not None else None),
             SlotSet("party_size", _to_float(party_size)),
             SlotSet("deposit_gbp", _to_float(deposit_gbp)),
+            SlotSet("duration_hours", _to_float(duration_hours)),
         ]
 
         # Required-field check

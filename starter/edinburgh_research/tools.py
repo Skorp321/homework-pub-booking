@@ -168,7 +168,10 @@ def get_weather(city: str, date: str) -> ToolResult:
         err = ToolError(
             "SA_TOOL_INVALID_INPUT",
             f"city {city!r} not in weather fixture",
-            context={"city": city, "available": list(data.keys()) if isinstance(data, dict) else []},
+            context={
+                "city": city,
+                "available": list(data.keys()) if isinstance(data, dict) else [],
+            },
         )
         output = {"city": city, "date": date, "error": err.message}
         record_tool_call("get_weather", arguments, output)
@@ -203,9 +206,7 @@ def get_weather(city: str, date: str) -> ToolResult:
         "precip_mm": day.get("precip_mm"),
         "wind_kph": day.get("wind_kph"),
     }
-    summary = (
-        f"get_weather({city}, {date}): {day['condition']}, {day['temperature_c']}C"
-    )
+    summary = f"get_weather({city}, {date}): {day['condition']}, {day['temperature_c']}C"
     record_tool_call("get_weather", arguments, output)
     return ToolResult(success=True, output=output, summary=summary)
 
@@ -369,9 +370,9 @@ def generate_flyer(session: Session, event_details: dict) -> ToolResult:
 
     html_doc = (
         "<!DOCTYPE html>\n"
-        "<html lang=\"en\">\n"
+        '<html lang="en">\n'
         "<head>\n"
-        "  <meta charset=\"utf-8\">\n"
+        '  <meta charset="utf-8">\n'
         f"  <title>Booking at {esc(venue_name)}</title>\n"
         "  <style>\n"
         "    body { font-family: -apple-system, system-ui, sans-serif; max-width: 640px;"
@@ -387,28 +388,28 @@ def generate_flyer(session: Session, event_details: dict) -> ToolResult:
         "</head>\n"
         "<body>\n"
         "  <article>\n"
-        f"    <h1 data-testid=\"title\">Booking at <span data-testid=\"venue-name\">{esc(venue_name)}</span></h1>\n"
+        f'    <h1 data-testid="title">Booking at <span data-testid="venue-name">{esc(venue_name)}</span></h1>\n'
         "    <section>\n"
         "      <h2>Event details</h2>\n"
         "      <dl>\n"
-        f"        <dt>Address</dt><dd data-testid=\"venue-address\">{esc(venue_address)}</dd>\n"
-        f"        <dt>Date</dt><dd data-testid=\"date\">{esc(date)}</dd>\n"
-        f"        <dt>Time</dt><dd data-testid=\"time\">{esc(time)}</dd>\n"
-        f"        <dt>Party size</dt><dd data-testid=\"party-size\">{esc(party_size)}</dd>\n"
+        f'        <dt>Address</dt><dd data-testid="venue-address">{esc(venue_address)}</dd>\n'
+        f'        <dt>Date</dt><dd data-testid="date">{esc(date)}</dd>\n'
+        f'        <dt>Time</dt><dd data-testid="time">{esc(time)}</dd>\n'
+        f'        <dt>Party size</dt><dd data-testid="party-size">{esc(party_size)}</dd>\n'
         "      </dl>\n"
         "    </section>\n"
         "    <section>\n"
         "      <h2>Weather forecast</h2>\n"
         "      <dl>\n"
-        f"        <dt>Condition</dt><dd data-testid=\"condition\">{esc(condition)}</dd>\n"
-        f"        <dt>Temperature</dt><dd data-testid=\"temperature\">{esc(temperature_c)}&deg;C</dd>\n"
+        f'        <dt>Condition</dt><dd data-testid="condition">{esc(condition)}</dd>\n'
+        f'        <dt>Temperature</dt><dd data-testid="temperature">{esc(temperature_c)}&deg;C</dd>\n'
         "      </dl>\n"
         "    </section>\n"
         "    <section>\n"
         "      <h2>Cost</h2>\n"
         "      <dl>\n"
-        f"        <dt>Total</dt><dd class=\"cost\" data-testid=\"total\">&pound;{esc(total_gbp)}</dd>\n"
-        f"        <dt>Deposit</dt><dd data-testid=\"deposit\">&pound;{esc(deposit_required_gbp)}</dd>\n"
+        f'        <dt>Total</dt><dd class="cost" data-testid="total">&pound;{esc(total_gbp)}</dd>\n'
+        f'        <dt>Deposit</dt><dd data-testid="deposit">&pound;{esc(deposit_required_gbp)}</dd>\n'
         "      </dl>\n"
         "    </section>\n"
         "  </article>\n"
