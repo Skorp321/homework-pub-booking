@@ -3,6 +3,9 @@
 .env
 .env.local
 .env.*.local
+.agents
+.codex
+.qodo
 
 # ── Session artifacts ────────────────────────────────────────────────
 # Sessions contain API output and should not be committed.
