@@ -54,7 +54,7 @@ directly.
 ### Your answer
 
 During `make ex5-real` (session sess_794fe284c5ec, planner +
-executor both openai/gpt-oss-120b via Cloud.ru) verify_dataflow
+executor both openai/gpt-oss-120b) verify_dataflow
 caught a multi-field fabrication that a human skim would have
 missed.
 
